@@ -1,2 +1,2 @@
 <?xml version='1.0' encoding='ISO-8859-1'?>
-<PROCESS_PARAMETER icprm_conf_ind="1" icprm_mode="1" icprm_ref_mode="AUTO_CHROME" icprm_save_segimage="0" icprm_signal="0" icprm_silent="1" icprm_spot_color="DARK" icprm_subst_norm="&apos;&apos;" />
+<PROCESS_PARAMETER icprm_conf_ind="1" icprm_mode="1" icprm_only_current_image="False" icprm_ref_mode="AUTO_CHROME" icprm_save_segimage="False" icprm_signal="One_MeanDivBkg" icprm_silent="True" icprm_spot_color="DARK" icprm_subst_norm="&apos;&apos;" />
