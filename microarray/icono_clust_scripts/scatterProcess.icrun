@@ -1,13 +1,12 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-<PROCESS owner="Clondiag Chip Technologies" password="e8636ea013e682faf61f56ce1cb1ab5c" script="CCT._Description = {
-&quot;Author&quot; : 	&quot;Clondiag Chip Technologies&quot;,
-&quot;Target&quot; : 	&quot;Processing of Standard Array Experiments&quot;,
-&quot;Description&quot; : 	'''
+CCT._Description = {
+"Author" : 	"Clondiag Chip Technologies",
+"Target" : 	"Processing of Standard Array Experiments",
+"Description" : 	'''
 		Script processes the first two images in experiment.
 		Histogram and Model-based Spot Segmentation are optional.
 		Scatterplot is generated with different colors for each substance.
 		''',
-&quot;Parameter&quot; :	'''
+"Parameter" :	'''
 		icprm_color:	DARK or BRIGHT
 		icprm_mode:	0 for defined shape
 				1 for automatic shape
@@ -15,12 +14,12 @@
 		icprm_featlist:	Features to determine
 				Selection out of (Mean, Background, Sigma, Median, Area, CoG_x, CoG_y)
 		''',
-&quot;Version&quot; :	2.0
+"Version" :	2.0
 }
 
-__ICPRM__ = { &quot;icprm_color&quot;:		&quot;BRIGHT&quot;,
-		&quot;icprm_mode&quot;: 		&quot;0&quot;,
-		&quot;icprm_featlist&quot;:		'( &quot;Mean&quot;, &quot;Background&quot;, &quot;Sigma&quot; )'	}
+__ICPRM__ = { "icprm_color":		"BRIGHT",
+		"icprm_mode": 		"0",
+		"icprm_featlist":		'( "Mean", "Background", "Sigma" )'	}
 
 
 __SpotAligning = 1
@@ -63,9 +62,9 @@ for image in images:
 	if mode == 2 and color == BRIGHT:		#model-based
 		icono.InvertImage( image, image )
 	try:
-		CCT.RunAlignment( mode = mode, param = { &quot;Transformation&quot;: ( 0, ( linethres, ) ),
-                                  		&quot;Thresholding&quot;: ( thres, prm_thres ),
-                                  		&quot;Segmentation&quot;: ( seg, prm_seg ) } )
+		CCT.RunAlignment( mode = mode, param = { "Transformation": ( 0, ( linethres, ) ),
+                                  		"Thresholding": ( thres, prm_thres ),
+                                  		"Segmentation": ( seg, prm_seg ) } )
 
 	finally:
 		if mode == 2 and color == BRIGHT:		#model-based
@@ -79,8 +78,7 @@ __SpotAligning = 0
 __DetFeatures = 1
 
 CCT.PresentScatter.InitializeGUI()
-CCT.vb_control.SetPresentation( &quot;PresentScatter&quot; )
+CCT.vb_control.SetPresentation( "PresentScatter" )
 CCT.PresentScatter.Show()
 
 __DetFeatures = 0
-"/>

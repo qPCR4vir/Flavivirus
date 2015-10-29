@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-<PROCESS owner="Clondiag Chip Technologies" password="e8636ea013e682faf61f56ce1cb1ab5c" script="CCT._Description = {
-&quot;Author&quot; : 	&quot;Clondiag Chip Technologies&quot;,
-&quot;Target&quot; : 	&quot;Processing of Standard Array Experiments&quot;,
-&quot;Description&quot; : 	'''
+CCT._Description = {
+"Author" : 	"Clondiag Chip Technologies",
+"Target" : 	"Processing of Standard Array Experiments",
+"Description" : 	'''
 		Script processes the active image.
 		Histogram and Model-based Spot Segmentation are optional.
 		Substance Sorting: Determines 
@@ -10,7 +9,7 @@
 		- Sigma for the Mean(gray) for each Substance.
 		Graphical Result Presentation for these features.
 		''',
-&quot;Parameter&quot; :	'''
+"Parameter" :	'''
 		icprm_color:	DARK or BRIGHT
 		icprm_mode:	0 for defined shape
 				1 for automatic shape
@@ -18,12 +17,12 @@
 		icprm_featlist:	Features to determine
 				Selection out of (Mean, Background, Sigma, Median, Area, CoG_x, CoG_y)
 		''',
-&quot;Version&quot; :	2.0
+"Version" :	2.0
 }
 
-__ICPRM__ = { &quot;icprm_color&quot;:		&quot;BRIGHT&quot;,
-		&quot;icprm_mode&quot;: 		&quot;0&quot;,
-		&quot;icprm_featlist&quot;:		'( &quot;Mean&quot;, &quot;Background&quot;, &quot;Sigma&quot; )'	}
+__ICPRM__ = { "icprm_color":		"BRIGHT",
+		"icprm_mode": 		"0",
+		"icprm_featlist":		'( "Mean", "Background", "Sigma" )'	}
 
 
 __SpotAligning = 1
@@ -66,9 +65,9 @@ elif mode == 1:				#gradient-histogram-based
 	prm_thres = tuple( prm_thres )
 		
 	
-CCT.RunAlignment( mode = mode, param = { &quot;Transformation&quot;: ( 0, ( linethres, ) ),
-                                  	&quot;Thresholding&quot;: ( thres, prm_thres ),
-                                  	&quot;Segmentation&quot;: ( seg, prm_seg ) } )
+CCT.RunAlignment( mode = mode, param = { "Transformation": ( 0, ( linethres, ) ),
+                                  	"Thresholding": ( thres, prm_thres ),
+                                  	"Segmentation": ( seg, prm_seg ) } )
 
 if mode == 2 and color == BRIGHT:		#model-based
 	idi = CCT.GetCurrentImage()
@@ -80,18 +79,18 @@ __DetFeatures = 1
 
 id_img = CCT.image_act
 featlist = icprm_featlist
-if not &quot;Mean&quot; in featlist:
-	featlist.append( &quot;Mean&quot; )
-if not &quot;Background&quot; in featlist:
-	featlist.append( &quot;Background&quot; )
+if not "Mean" in featlist:
+	featlist.append( "Mean" )
+if not "Background" in featlist:
+	featlist.append( "Background" )
 
 CCT.DetermineFeatures( id_img, featlist )
-feat_mean = CCT.features[&quot;Mean&quot;] 
-feat_back = CCT.features[&quot;Background&quot;]
+feat_mean = CCT.features["Mean"] 
+feat_back = CCT.features["Background"]
 try:
-	feat_subst = CCT.features[&quot;Substance&quot;]
+	feat_subst = CCT.features["Substance"]
 except:
-	feat_subst = &quot;Standard&quot; * len( feat_mean )
+	feat_subst = "Standard" * len( feat_mean )
 CCT.featSubst = []
 for subst in feat_subst:
 	try:
@@ -105,14 +104,14 @@ CCT.fluoroFeatures = range( len( CCT.featSubst ) )
 for i in xrange( len( CCT.featSubst ) ):
 	CCT.fluoroFeatures[i] = []
 for i in xrange( len( feat_mean ) ):
-	subst = CCT.features[&quot;Substance&quot;][i]
+	subst = CCT.features["Substance"][i]
 	CCT.fluoroFeatures[ CCT.featSubst.index( subst ) ].append( ( feat_mean[i], feat_back[i] ) )	
 
 __DetFeatures = 0
 
 __Presentation = 1
 
-print &quot;Formatting Features ...&quot;
+print "Formatting Features ..."
 
 def MeanList( liste ):
 	amount = len( liste[0] )
@@ -135,27 +134,26 @@ def SigmaList( liste, mean ):
 		sum[i] = math.sqrt( sum[i] )
 	return sum
 
-fluoroResult = { 	&quot;Substance&quot; : [],
-		&quot;Mean( Intensity )&quot; : [], 
-		&quot;Sigma( Intensity )&quot; : [] }
+fluoroResult = { 	"Substance" : [],
+		"Mean( Intensity )" : [], 
+		"Sigma( Intensity )" : [] }
 for i in xrange( len( CCT.featSubst ) ):
 	mean = MeanList( CCT.fluoroFeatures[i] )
 	sigma = SigmaList( CCT.fluoroFeatures[i], mean )
-	fluoroResult[&quot;Substance&quot;].append( CCT.featSubst[i] )
-	fluoroResult[&quot;Mean( Intensity )&quot;].append( min( mean[0], 1.0 ) )
-	fluoroResult[&quot;Sigma( Intensity )&quot;].append( min( sigma[0], 1.0 ) )
+	fluoroResult["Substance"].append( CCT.featSubst[i] )
+	fluoroResult["Mean( Intensity )"].append( min( mean[0], 1.0 ) )
+	fluoroResult["Sigma( Intensity )"].append( min( sigma[0], 1.0 ) )
 
 import Presentation
 pr = Presentation.Presentation()
 pr.SetData( data_dict = fluoroResult )
 
-pr.CreateGUI( &quot;IconoClustPresentation.Show&quot; )
-pr.ExportData( name = &quot;IconoClust Results&quot;, show_keys = [&quot;Mean( Intensity )&quot; , &quot;Sigma( Intensity )&quot;] )
+pr.CreateGUI( "IconoClustPresentation.Show" )
+pr.ExportData( name = "IconoClust Results", show_keys = ["Mean( Intensity )" , "Sigma( Intensity )"] )
 pr.Show()
 
 CCT.Presentation = pr 
-CCT.vb_control.SetPresentation( &quot;Presentation&quot; )
+CCT.vb_control.SetPresentation( "Presentation" )
 
 __Presentation = 0
 
-"/>
