@@ -32,11 +32,10 @@
 					AUTO               for Automatic Reference System Detection  : NOT IMPLEMENTED, default to AUTO_CHROME
 					AUTO_CHROME for Automatic Chrome Reference System Detection
 		&apos;&apos;&apos;,
-&quot;Version&quot; : 	&quot;3.2r4&quot;,
+&quot;Version&quot; : 	&quot;3.2r5&quot;,
 &quot;ScriptVersion&quot; : &quot;2014-06-21&quot;
 }
 
-table_created = False
 print &quot;---  Script adapted  by Ariel Vina Rodriguez !!!!!!!!!!   &quot; 
 
 FIXED = 0		# Segmentation mode 
@@ -81,19 +80,17 @@ print &quot; or to 0:  = Local Background - Mean &quot;
 
 import time
 tStart = time.time()
-export_orange=icprm_export_orange  	#True. Why icprm_export_orange is undefined at the end of the script?  
-export_CSV=icprm_export_csv   		#False. Why icprm_export_CSV is undefined at the end of the script?  
-ExportSig =  export_orange  or  export_CSV
-#ExportSig = icprm_export_orange  or icprm_export_csv    # Why this dont work?
-#print &quot;PASS&quot;,export_orange, export_CSV, icprm_export_orange
 
-
-ref_mode = icprm_ref_mode	# only allow model-based segmentation or fixed ROI
-mode = AUTO_CHROME if icprm_mode else MANUAL     # ???
-	# the equation 1 - Mean / BG is only allowed for colorimetric detection
+table_created = False
+export_orange = icprm_export_orange  	#True. Why icprm_export_orange is undefined at the end of the script?  
+export_CSV    = icprm_export_csv   	#False. Why icprm_export_CSV is undefined at the end of the script?  
+ExportSig     =  (export_orange  or  export_CSV) and not icprm_only_current_image 
+ref_mode      = icprm_ref_mode	       # only allow model-based segmentation or fixed ROI
+mode          = AUTO_CHROME if icprm_mode else MANUAL     # ???
+invert        = mode == AUTO_CHROME and icprm_spot_color == BRIGHT
+	                                   # the equation 1 - Mean / BG is only allowed for colorimetric detection
 verified_icprm_signal = Bkg_Mean if (( icprm_spot_color == BRIGHT ) 
                                  and ( icprm_signal == One_MeanDivBkg )) else icprm_signal
-invert = mode == AUTO_CHROME and icprm_spot_color == BRIGHT
 if icprm_spot_color == BRIGHT:
 		hist_par_spot = ( 0.7, 1.0 )
 		hist_par_back = ( 0.0, 0.3 )
@@ -113,6 +110,43 @@ img_supp = ImageSupport.ImageSupport()
 
 # use last image --- for what?? align only? for Reference ?!
 #image = images[0] #[-1]
+
+def CreateTables(imagePath, subst_list):
+	pathExper, imageFile = os.path.split( imagePath )
+	ExperName = os.path.split( pathExper )[1] 
+	tables=[]
+
+	if icprm_export_orange:
+		ExtOrg,SepOrg = (&quot;.tab&quot;,&quot;\t&quot;) 
+		NameOrg = ExperName + ExtOrg
+		OrangeExportPath = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Results&quot;, NameOrg ) 
+		Orange = open( OrangeExportPath, &quot;w&quot; )
+
+		Orange.write( &quot;Sample&quot;+SepOrg )             # header
+		Orange.write(SepOrg.join(subst_list))
+		Orange.write( &quot;\n&quot; )
+
+		Orange.write( &quot;string&quot;  )           # attribute type
+		Orange.write( (SepOrg+&quot;continuous&quot;) * len(subst_list )   )
+		Orange.write( &quot;\n&quot; )
+				
+		Orange.write( &quot;meta&quot;  )		# meta information
+		Orange.write( SepOrg * len( subst_list )  )
+		Orange.write( &quot;\n&quot; )
+		tables.append( (Orange,SepOrg,&quot;Orange Table_path: &quot;, OrangeExportPath) )
+			
+	if icprm_export_csv:
+		ExtCSV,SepCSV = (&quot;.csv&quot;,&quot;\t&quot;) 
+		NameCSV = ExperName + ExtCSV
+		CSVExportPath = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Results&quot;, NameCSV ) 
+		CSV = open( CSVExportPath, &quot;w&quot; )
+
+		CSV.write( &quot;Sample&quot;+SepCSV)             # header
+		CSV.write(SepCSV.join(subst_list))
+		CSV.write( &quot;\n&quot; )
+		tables.append( (CSV   ,SepCSV,&quot;CSV Table_path:  &quot;  , CSVExportPath) )
+	return tables
+	
 
 def SaveSegmentationImafe(CCT,image):
 	#---------------------------------------------------------------
@@ -353,9 +387,9 @@ for image in images:
                sum(SigMeans[ subst ])/len(SigMeans[ subst ]) for subst  in subst_list  ]
 	print &quot;---- SigMeans created 2&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
-	CCT.validFeat = { 	&quot;Signal&quot;: 	sig,
-				&quot;Valid&quot;:		[ 0.0 for s  in subst_list  ],
-				&quot;Substance&quot;:	[ s for s  in subst_list  ] }
+	CCT.validFeat = { &quot;Signal&quot;:    sig,
+			    &quot;Valid&quot; :    [ 0.0 ] * len(subst_list ),
+			    &quot;Substance&quot;: subst_list }
 	print &quot;--- valid feat calculed&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	if CCT.vb_control:					# #### Graphic ????
@@ -377,71 +411,24 @@ for image in images:
 		CCT.paramProcessing[&quot;segPath&quot;] = seg_name
 
 	print &quot;--- Before export&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-									 # Export signals in a file
 
-	if not only_curr_image and ExportSig :
-
+	if ExportSig :						 # Export signals in a file
 		imagePath=CCT.GetImageName(image)
+		if not table_created:
+			tables = CreateTables(imagePath, subst_list)
+			table_created = True
 		sample  =  os.path.splitext(os.path.basename( imagePath ))[0]
 		print &quot;Saving data for sample: &quot;, sample
-
-		if not table_created:
-			#Export_Format = &quot;Orange_tab&quot;  # &quot;CSV&quot;
-			pathExper, imageFile = os.path.split( imagePath )
-			ExperName = os.path.split( pathExper )[1] 
-
-			if export_orange: #icprm_export_Orange:
-				ExtOrg,SepOrg = (&quot;.tab&quot;,&quot;\t&quot;) 
-				NameOrg = ExperName + ExtOrg
-				OrangeExportPath = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Results&quot;, NameOrg ) 
-				Orange = open( OrangeExportPath, &quot;w&quot; )
-
-				Orange.write( &quot;Sample&quot;+SepOrg )             # header
-				Orange.write(SepOrg.join(subst_list))
-				Orange.write( &quot;\n&quot; )
-
-				Orange.write( &quot;string&quot;  )           # attribute type
-				Orange.write( (SepOrg+&quot;continuous&quot;) * len(subst_list )   )
-				Orange.write( &quot;\n&quot; )
-				
-				Orange.write( &quot;meta&quot;  )		# meta information
-				Orange.write( SepOrg * len( subst_list )  )
-				Orange.write( &quot;\n&quot; )
-			
-			if  export_CSV:   #if icprm_export_CSV:
-				ExtCSV,SepCSV = (&quot;.tab&quot;,&quot;\t&quot;) 
-				NameCSV = ExperName + ExtCSV
-				CSVExportPath = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Results&quot;, NameCSV ) 
-				CSV = open( CSVExportPath, &quot;w&quot; )
-
-				CSV.write( &quot;Sample&quot;+SepCSV)             # header
-				CSV.write(SepCSV.join(subst_list))
-				CSV.write( &quot;\n&quot; )
-
-
-			table_created = True
-	
-		if export_orange: #icprm_export_Orange:
-			Orange.write(sample)
-			Orange.write( SepOrg )
-			Orange.write(SepOrg.join(   [str(signal) for signal in sig]   ))
-			Orange.write( &quot;\n&quot; )
-
-		if  export_CSV:   #if icprm_export_CSV:
-			CSV.write(sample)
-			CSV.write( SepCSV )
-			CSV.write(SepCSV.join(   [str(signal) for signal in sig]   ))
-			CSV.write( &quot;\n&quot; )
-
+		for table, sep,n,p in tables:
+ 			table.write(sample)
+			table.write( sep )
+			table.write(sep.join(   [str(signal) for signal in sig]   ))
+			table.write( &quot;\n&quot; )
 	print &quot;Ende cycle&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
-if export_orange: #icprm_export_Orange:
-	Orange.close()
-	print &quot;Orange Table_path: &quot;, OrangeExportPath 
-
-if  export_CSV:   #if icprm_export_CSV:
-	CSV.close()
-	print &quot;CSV Table_path:  &quot;, CSVExportPath
+for table, s ,title,path in tables:
+	table.close()
+	print title,path
 
 print &quot;Ende script&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 print &quot;Num of images to processed = &quot;, len(images)
