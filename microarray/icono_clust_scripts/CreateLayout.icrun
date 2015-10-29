@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<PROCESS owner="Clondiag Chip Technologies" password="e8636ea013e682faf61f56ce1cb1ab5c" script="CCT._Description = {
+&quot;Author&quot; : 	&quot;Clondiag Chip Technologies&quot;,
+&quot;Target&quot; : 	&quot;Creates Layout Parameter Files&quot;,
+&quot;Description&quot; : 	&apos;&apos;&apos;
+		Creates Parameter files from abstract array id.
+		&apos;&apos;&apos;,
+&quot;Parameter&quot; : 	&apos;&apos;&apos;
+		&apos;&apos;&apos;,
+&quot;Version&quot; : 	&quot;3.5r1&quot;,
+}
+
+__ICPRM__ = {}
+
+import Database
+import ExtractLayout
+import EasyDialogs
+
+from win32com.client import Dispatch
+dialog = Dispatch( &quot;IconoUtil.Util&quot; )
+res = dialog.Authorization()
+user, pwd = res[:2]
+
+array_id = EasyDialogs.AskString( &quot;Give the Abstract Array ID&quot; )
+if not array_id:
+	raise ErrorException( &quot;No Array ID given!&quot; )
+
+param_path = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot; )
+
+comm = Database.Communicator()
+connect = [ None, &quot;&quot;, &quot;&quot;, user, pwd ]
+comm.connect( connect )
+sources = ExtractLayout.CreateParamFromArray( array_id, comm, param_path, 
+							param = ( 	&quot;array_layout&quot;,
+									&quot;a_probe_on_array&quot;,
+									&quot;h_ref_pos_sys&quot; ) )
+
+param_list = sources.items()
+CCT.SetParameterSingle( param_list )
+for name in ( &quot;array_layout&quot;, &quot;a_probe_on_array&quot;, &quot;h_ref_pos_sys&quot; ):
+	CCT.vb_control.LoadParameterInTree( sources[name], name )
+" />
