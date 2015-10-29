@@ -9,35 +9,35 @@
 		Automatic Reference System Recognition is optional.
 		Results are normalized by the biggest signal, if bigger than 20% of the Biotin-Marke_2,5µM probe mean signal.&apos;&apos;&apos;,
 &quot;Parameter&quot; : 	&apos;&apos;&apos;
-		icprm_only_current_image:  False/True : what images to process
+		icprm_only_current_image:  True/False : what images to process. If only the current, no result will be export, but will be shown.
+		icprm_export_orange            True/False  : Export all Exp.signal data to be use in Orange. http://orange.biolab.si/
+		icprm_export_csv                    True/False  : Export all Exp.signal data (for example to Excel)
 		icprm_normalize:		NONE   		= 0  	
 					SUBST_NORM  	= 1 
 					RANGE 		= 2
 					 EXEPT_SN 	= 3
 		icprm_subst_norm:	Name of normalizing substance. For example:   &quot;Biotin-Marke_2,5µM&quot;
-					If empty the name will be entered in a dialog
+					If empty the name will be entered in a dialog if silent is set to False
 		icprm_signal:		Bkg_Mean                 = 0     for Signal = Local Background - Mean               
-					One_MeanDivBkg  = 1 for Signal = 1 - Mean / Local Background (only allowed for colorimetric detection)   
-		icprm_silent:		 False for enabling user interaction
+					One_MeanDivBkg  = 1     for Signal = 1 - Mean / Local Background (only allowed for colorimetric detection)   
+		icprm_silent:		 False for enabling user interaction  : NOT IMPLEMENTED
 					True for suppressing user interaction
 		icprm_conf_ind:		determine Confidence Index (CI)
 					A spot is set invalid if CI &lt; 0.75 and Signal &gt; 0.1
-		icprm_save_segimage:	GENERIC_NAME
+		icprm_save_segimage:	GENERIC_NAME		??
 		icprm_spot_color:		DARK or BRIGHT
 		icprm_mode:		FIXED      = 0 for fixed segmentation according to layout
 					MODE     = 1 for Model-based Segmentation
 		icprm_ref_mode:		MANUAL         for manual setting of Reference Points
-					AUTO               for Automatic Reference System Detection
+					AUTO               for Automatic Reference System Detection  : NOT IMPLEMENTED, default to AUTO_CHROME
 					AUTO_CHROME for Automatic Chrome Reference System Detection
 		&apos;&apos;&apos;,
-&quot;Version&quot; : 	&quot;3.2r3&quot;,
+&quot;Version&quot; : 	&quot;3.2r4&quot;,
 &quot;ScriptVersion&quot; : &quot;2014-06-21&quot;
 }
 
 table_created = False
 print &quot;---  Script adapted  by Ariel Vina Rodriguez !!!!!!!!!!   &quot; 
-print &quot;Signal changed from 1 to 0 ?? 1: = 1 - Mean / Local Background &quot;
-print &quot; or to 0:  = Local Background - Mean &quot;
 
 FIXED = 0		# Segmentation mode 
 MODE = 1
@@ -61,28 +61,35 @@ One_MeanDivBkg = 1
 Not_SILENT = False	# user interaction
 SILENT = True
 
-Export_Format = &quot;Orange_tab&quot;  # &quot;CSV&quot;
-
 
 __ICPRM__ = { &quot;icprm_spot_color&quot;:	&quot;DARK&quot;,	
+		&quot;icprm_only_current_image&quot;: &quot;False&quot;,
+		&quot;icprm_export_csv&quot;: 	&quot;False&quot;,
+		&quot;icprm_export_orange&quot;: 	&quot;True&quot;,
+		&quot;icprm_normalize&quot;:	&quot;EXEPT_SN&quot;,	
 		&quot;icprm_mode&quot;: 		&quot;MODE&quot;,
 		&quot;icprm_ref_mode&quot;:	&quot;AUTO_CHROME&quot;,
 		&quot;icprm_silent&quot;:		&quot;True&quot;,
-		&quot;icprm_normalize&quot;:	&quot;EXEPT_SN&quot;,	
 		&quot;icprm_subst_norm&quot;:	&quot;&apos;Biotin-Marke_2,5µM&apos;&quot;,	
 		&quot;icprm_conf_ind&quot;:		&quot;1&quot;,	
 		&quot;icprm_signal&quot;:		&quot;One_MeanDivBkg&quot;,
 		&quot;icprm_save_segimage&quot;:	&quot;False&quot;,
-		&quot;icprm_only_current_image&quot;: &quot;False&quot;,
 		}
+
+print &quot;Signal changed from 1 to 0 ?? 1: = 1 - Mean / Local Background &quot;
+print &quot; or to 0:  = Local Background - Mean &quot;
 
 import time
 tStart = time.time()
+export_orange=icprm_export_orange  	#True. Why icprm_export_orange is undefined at the end of the script?  
+export_CSV=icprm_export_csv   		#False. Why icprm_export_CSV is undefined at the end of the script?  
+ExportSig =  export_orange  or  export_CSV
+#ExportSig = icprm_export_orange  or icprm_export_csv    # Why this dont work?
+#print &quot;PASS&quot;,export_orange, export_CSV, icprm_export_orange
 
 
-only_curr_image = icprm_only_current_image
-mode = AUTO_CHROME if icprm_mode else MANUAL     # ???
 ref_mode = icprm_ref_mode	# only allow model-based segmentation or fixed ROI
+mode = AUTO_CHROME if icprm_mode else MANUAL     # ???
 	# the equation 1 - Mean / BG is only allowed for colorimetric detection
 verified_icprm_signal = Bkg_Mean if (( icprm_spot_color == BRIGHT ) 
                                  and ( icprm_signal == One_MeanDivBkg )) else icprm_signal
@@ -93,9 +100,8 @@ if icprm_spot_color == BRIGHT:
 else:
 		hist_par_back = ( 0.7, 1.0 )
 		hist_par_spot = ( 0.0, 0.3 )
+only_curr_image = icprm_only_current_image
 images = (CCT.GetCurrentImage(),) if only_curr_image else CCT.GetSortedImageIDs()
-print &quot;Num of images to process = &quot;, len(images)
-	
 
 import win32gui
 import ATProcess
@@ -108,21 +114,9 @@ img_supp = ImageSupport.ImageSupport()
 # use last image --- for what?? align only? for Reference ?!
 #image = images[0] #[-1]
 
-GlobalText = &apos;GlobalText test&apos;
-
-print &quot;No Functions. &quot; , GlobalText
-def PrintTest (CCT):
-	print &quot;The test is OK. Functions work. &quot; 
-	print &quot;Num of images to process = &quot;, len(CCT.GetSortedImageIDs())
-	print &quot;only_curr_image =&quot;, icprm_only_current_image
-
-PrintTest (CCT)
-print &quot;No Functions. &quot; , GlobalText
-	
-
 def SaveSegmentationImafe(CCT,image):
 	#---------------------------------------------------------------
-	# save segmentation image 
+	# save segmentation image ??
 	#---------------------------------------------------------------
 	try:
 		seg_name = CCT.segImageName
@@ -133,17 +127,16 @@ def SaveSegmentationImafe(CCT,image):
 	
 	if seg_name:
 		ic_img_path = seg_name + &quot;.png&quot; 
-		print &quot;save segmentation image to&quot;, ic_img_path
+		print &quot;Save segmentation image to: &quot;, ic_img_path
 		CCT.SaveSegImage( ic_img_path, mode = ImageSupport.CCT_ROI, opac = 1.0, add_valid = 1 )
 	return seg_name
 	#-----------------------------------------------------------------------------
 
 
-
  
 for image in images:
 
-	__SpotAligning = 1							# Preprocess image
+	__SpotAligning = 1							# PREprocess image
 	CCT.CommitImages( image )
 	size = img_supp.GetPictureDimensions( image )
 	img_supp.SetWindow( ( 5, 5, size[0] - 6, size[1] - 6 ), image )
@@ -224,12 +217,12 @@ for image in images:
 	__SpotAligning = 0
 
 	if icprm_conf_ind == 1:
-		img_id = processor.ProcessImage( image )
+		img_id  = processor.ProcessImage( image )
 		checker = Confidence.ConfidenceChecker( img_id, image, colour = icprm_spot_color )
 		checker.SetEnviron( CCT )
 		ci_results = checker.Check( parameter, set = { &apos;bg&apos;: { &apos;on&apos;: 0 } }, signal = verified_icprm_signal )
 	
-	print &quot;After Confidence&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot; #cprm_ darf nich clartext in string
+	print &quot;After ConfidenceChecker&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot; # ######   cprm_ darf nich clartext in string
 	
 	back_hist = CCT.DetermineFeatures( image,  ( &quot;Mean&quot;,  ),
 						    REGION_BACK|REGION_HIST, ( 3.0, -3.0, 0.0, 1.0, 0.0 ),
@@ -241,13 +234,15 @@ for image in images:
 	
 	len_list = len(CCT.features[&quot;Mean&quot;])
 	
-	
+									# #### Calcule Signals  !!!!!!
 	if icprm_spot_color == DARK:
 		if verified_icprm_signal == Bkg_Mean:
-			CCT.features[&quot;Signal&quot;] = [( back_hist[&quot;Mean&quot;][i] - CCT.features[&quot;Mean&quot;][i] ) for i in xrange( len_list ) ]
+			#CCT.features[&quot;Signal&quot;] = [( back_hist[&quot;Mean&quot;][i] - CCT.features[&quot;Mean&quot;][i] ) for i in xrange( len_list ) ]
+			CCT.features[&quot;Signal&quot;] = [ Bkg-Mean for Bkg,Mean in zip(back_hist[&quot;Mean&quot;],CCT.features[&quot;Mean&quot;])]
 	
 		elif verified_icprm_signal == One_MeanDivBkg:
-			CCT.features[&quot;Signal&quot;] = [0 for i in xrange( len_list ) ]
+			#CCT.features[&quot;Signal&quot;] = [0 for i in xrange( len_list ) ]
+			CCT.features[&quot;Signal&quot;] = [0] * len_list  
 			for i in xrange( len_list ):
 				try:
 					CCT.features[&quot;Signal&quot;][i] = 241.0 / 256.0 * ( 1 - CCT.features[&quot;Mean&quot;][i] / back_hist[&quot;Mean&quot;][i] )
@@ -266,7 +261,7 @@ for image in images:
 		for ci_key, ci_list in ci_results.iteritems():
 			CCT.features[ci_key] = [ci_list[i] for i in xrange( len( ci_list ) ) ]
 	
-	valid = CCT.features[&apos;Valid&apos;]         # --------   Seted: CCT.features[&apos;Valid&apos;]
+	invalid = CCT.features[&apos;Valid&apos;]         # --------   Seted: CCT.features[&apos;Valid&apos;]
 	
 	print &quot;Vor Seg Img&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	seg_name = SaveSegmentationImafe(CCT,image)	
@@ -274,33 +269,25 @@ for image in images:
 	
 	
 	
-	if CCT.vb_control:
+	if CCT.vb_control and only_curr_image:                     # Show and signal invalids
 		CCT.vb_control.ShowResults( 1 )
 		print &quot; ---  Results showed&quot;
 		if not icprm_silent:
 			answer = win32gui.MessageBox( 0, &apos;You can set invalid Spots now.&apos; + chr( 13 ) + \
 				&apos;Press &quot;Ok&quot; if you are done.&apos;, &apos;Spot Validity&apos;, 5168 )
-			valid = CCT.vb_control.GetValidity() # Reset manualy: CCT.features[&apos;Valid&apos;]
-			CCT.features[&apos;Valid&apos;] = valid
+			invalid = CCT.vb_control.GetValidity() # Reset manualy: CCT.features[&apos;Valid&apos;]
+			CCT.features[&apos;Valid&apos;] = invalid
 	
-	valid_indx = []
-	for i in xrange( len( valid ) ):
-		if valid[i] == 0:
-			valid_indx.append( i ) 
-	
+	valid_indx = [i for i in xrange( len( invalid ) ) if not invalid[i]   ]
 	
 	if not CCT.features.has_key( &quot;Substance&quot; ):
 		raise KeyError, &quot;You have to include Spot Descriptions into your Experiment&quot;
 	print &quot;---- After Substance...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-	CCT.featSubst = []
-	for subst in CCT.features[&quot;Substance&quot;]:
-		try:
-			pos = CCT.featSubst.index( subst )
-		except:
-			CCT.featSubst.append( subst )
+
+	CCT.featSubst = list(set(CCT.features[&quot;Substance&quot;]))
+	CCT.featSubst.sort()
 	print &quot;---- After Substance 2...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
-	CCT.featSubst = CCT.featSubst.sort()
 	
 	normSubst = &quot;Biotin-Marke_2,5µM&quot;   # = icprm_subst_norm  &quot;&quot;
 	if not icprm_subst_norm:
@@ -311,10 +298,14 @@ for image in images:
 			normSubst = util.ListSelectEx( &quot;Normalizing Substance&quot;, &quot;Select name of normalizing substance&quot;, &quot;Select&quot;, CCT.featSubst[:], &quot;norm_subst&quot; )
 			normSubst = normSubst.strip()
 	
-	CCT.features[&apos;Valid&apos;] = valid
+	CCT.features[&apos;Valid&apos;] = invalid
 
-	if normSubst:
-		# normalize features
+	#	icprm_normalize:		NONE   		= 0  	
+	#				SUBST_NORM  	= 1 
+	#				RANGE 		= 2
+	#				 EXEPT_SN 	= 3
+
+	if normSubst and icprm_normalize:					# normalize features
 		feat_norm = ( &quot;Signal&quot;,)# &quot;Mean&quot;, &quot;Background&quot;, )
 		normFeat = {}
 		nFeatMax = {}
@@ -323,7 +314,7 @@ for image in images:
 			nFeatMax[feat] = 0.0
 		norm_count = 0
 		for i in xrange( len( CCT.features[&quot;Substance&quot;] ) ):
-			if valid[i]:
+			if invalid[i]:
 				continue
 			subst = CCT.features[&quot;Substance&quot;][i]
 			if subst != normSubst:
@@ -344,31 +335,10 @@ for image in images:
 				#CCT.features[feat] = [ val / normFeat[feat] for val in CCT.features[feat] ]
 				CCT.features[feat] = [ val / nFeatMax[feat] for val in CCT.features[feat] ]
 	
-	print &quot; ---- Normalized ...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-	if False: #not CCT.sources.has_key( &quot;subst_match&quot; ):    ???????????
-		print &quot; have to create file with all the substances without any relations&quot;
-		# name it after the a_probe_on_array file 
-		name_match = os.path.basename( CCT.sources[&quot;a_probe_on_array&quot;] )
-		name_match = os.path.splitext( name_match )[0] + &quot;.txt&quot;
-		name_match = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Layout&quot;, &quot;Substance&quot;, name_match ) 
-		cont_match = &quot;Match\tSubstance\n&quot;
-		subst_in = []
-		for subst in CCT.features[&quot;Substance&quot;]:
-			if not subst in subst_in:
-				cont_match += subst + &apos;\t&apos; + subst + &apos;\n&apos;
-				subst_in.append( subst )
-		print &quot;--- Creating file &quot;, name_match  , &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-		#f = open( name_match, &quot;w&quot; )
-		#f.write( cont_match )
-		#f.close()
-		import Excel2XMLSubstance
-		conv = Excel2XMLSubstance.xl2XML()
-		conv.ImportText( name_match )
-		name_match = conv.Create()
-		CCT.SetParameterSingle( [ ( &quot;subst_match&quot;, name_match ), ] )
+		print &quot; ---- Normalized ...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
 	# create a dictionary with key value pair: substancename, value
-	# presentation only creates the mean of the values per substance
+	# presentation only                          creates the mean of the values per substance
 
 	subst_list = set(CCT.features[&quot;Substance&quot;])
 	SigMeans = {}
@@ -388,7 +358,7 @@ for image in images:
 				&quot;Substance&quot;:	[ s for s  in subst_list  ] }
 	print &quot;--- valid feat calculed&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
-	if CCT.vb_control:
+	if CCT.vb_control:					# #### Graphic ????
 		import PresentEnvironAT
 		CCT.PresentAT = PresentEnvironAT.PresentEnviron()
 		CCT.PresentAT.SetSignalFeature( &quot;Signal&quot; )
@@ -407,49 +377,74 @@ for image in images:
 		CCT.paramProcessing[&quot;segPath&quot;] = seg_name
 
 	print &quot;--- Before export&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-	# Export signals in a file
-	if not only_curr_image:
+									 # Export signals in a file
 
-		#Export_Format = &quot;Orange_tab&quot;  # &quot;CSV&quot;
-		Ext,Sep = (&quot;.tab&quot;,&quot;\t&quot;) if Export_Format==&quot;Orange_tab&quot; else (&quot;.csv&quot;,&quot;,&quot;)
+	if not only_curr_image and ExportSig :
+
 		imagePath=CCT.GetImageName(image)
-		#print &quot;imagePath: &quot;, imagePath
-		sample =  os.path.splitext(os.path.basename( imagePath ))[0]
-		print &quot;sample: &quot;, sample
+		sample  =  os.path.splitext(os.path.basename( imagePath ))[0]
+		print &quot;Saving data for sample: &quot;, sample
 
 		if not table_created:
-			pathExp, imageFile = os.path.split( imagePath )
-			ExpName = os.path.split( pathExp )[1] + Ext
-			print &quot;ExpName: &quot;, ExpName
-			table_path = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Results&quot;, ExpName ) 
-			f = open( table_path, &quot;w&quot; )
+			#Export_Format = &quot;Orange_tab&quot;  # &quot;CSV&quot;
+			pathExper, imageFile = os.path.split( imagePath )
+			ExperName = os.path.split( pathExper )[1] 
 
-			f.write( &quot;Sample&quot;+Sep )             # header
-			f.write(Sep.join(subst_list))
-			f.write( &quot;\n&quot; )
+			if export_orange: #icprm_export_Orange:
+				ExtOrg,SepOrg = (&quot;.tab&quot;,&quot;\t&quot;) 
+				NameOrg = ExperName + ExtOrg
+				OrangeExportPath = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Results&quot;, NameOrg ) 
+				Orange = open( OrangeExportPath, &quot;w&quot; )
 
-			if Export_Format==&quot;Orange_tab&quot;:
+				Orange.write( &quot;Sample&quot;+SepOrg )             # header
+				Orange.write(SepOrg.join(subst_list))
+				Orange.write( &quot;\n&quot; )
 
-				f.write( &quot;string&quot;  )           # attribute type
-				f.write( (Sep+&quot;continuous&quot;) * len(subst_list )   )
-				f.write( &quot;\n&quot; )
+				Orange.write( &quot;string&quot;  )           # attribute type
+				Orange.write( (SepOrg+&quot;continuous&quot;) * len(subst_list )   )
+				Orange.write( &quot;\n&quot; )
 				
-				f.write( &quot;meta&quot;  )		# meta information
-				f.write( Sep * len( subst_list )  )
-				f.write( &quot;\n&quot; )
+				Orange.write( &quot;meta&quot;  )		# meta information
+				Orange.write( SepOrg * len( subst_list )  )
+				Orange.write( &quot;\n&quot; )
+			
+			if  export_CSV:   #if icprm_export_CSV:
+				ExtCSV,SepCSV = (&quot;.tab&quot;,&quot;\t&quot;) 
+				NameCSV = ExperName + ExtCSV
+				CSVExportPath = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Results&quot;, NameCSV ) 
+				CSV = open( CSVExportPath, &quot;w&quot; )
+
+				CSV.write( &quot;Sample&quot;+SepCSV)             # header
+				CSV.write(SepCSV.join(subst_list))
+				CSV.write( &quot;\n&quot; )
+
 
 			table_created = True
 	
-		f.write(sample)
-		f.write( Sep )
-		f.write(Sep.join(   [str(signal) for signal in sig]   ))
-		f.write( &quot;\n&quot; )
+		if export_orange: #icprm_export_Orange:
+			Orange.write(sample)
+			Orange.write( SepOrg )
+			Orange.write(SepOrg.join(   [str(signal) for signal in sig]   ))
+			Orange.write( &quot;\n&quot; )
+
+		if  export_CSV:   #if icprm_export_CSV:
+			CSV.write(sample)
+			CSV.write( SepCSV )
+			CSV.write(SepCSV.join(   [str(signal) for signal in sig]   ))
+			CSV.write( &quot;\n&quot; )
 
 	print &quot;Ende cycle&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
-f.close()
+if export_orange: #icprm_export_Orange:
+	Orange.close()
+	print &quot;Orange Table_path: &quot;, OrangeExportPath 
+
+if  export_CSV:   #if icprm_export_CSV:
+	CSV.close()
+	print &quot;CSV Table_path:  &quot;, CSVExportPath
+
 print &quot;Ende script&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-print &quot;table_path: &quot;, table_path
+print &quot;Num of images to processed = &quot;, len(images)
 __DetFeatures = 0
 
 
