@@ -30,8 +30,8 @@
 					AUTO               for Automatic Reference System Detection
 					AUTO_CHROME for Automatic Chrome Reference System Detection
 		&apos;&apos;&apos;,
-&quot;Version&quot; : 	&quot;3.2r2&quot;,
-&quot;ScriptVersion&quot; : &quot;2014-06-18&quot;
+&quot;Version&quot; : 	&quot;3.2r3&quot;,
+&quot;ScriptVersion&quot; : &quot;2014-06-21&quot;
 }
 
 table_created = False
@@ -135,7 +135,7 @@ def SaveSegmentationImafe(CCT,image):
 		ic_img_path = seg_name + &quot;.png&quot; 
 		print &quot;save segmentation image to&quot;, ic_img_path
 		CCT.SaveSegImage( ic_img_path, mode = ImageSupport.CCT_ROI, opac = 1.0, add_valid = 1 )
-	
+	return seg_name
 	#-----------------------------------------------------------------------------
 
 
@@ -143,9 +143,7 @@ def SaveSegmentationImafe(CCT,image):
  
 for image in images:
 
-	# Preprocess image
-
-	__SpotAligning = 1
+	__SpotAligning = 1							# Preprocess image
 	CCT.CommitImages( image )
 	size = img_supp.GetPictureDimensions( image )
 	img_supp.SetWindow( ( 5, 5, size[0] - 6, size[1] - 6 ), image )
@@ -219,16 +217,11 @@ for image in images:
 		print &quot;CCT.vb_control true&quot;
 		print str(CCT.vb_control) #.toString()
 	
-	print &quot;SpotAligning:: ENDE&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-
-	# Preprocess image ended
+	print &quot;SpotAligning:: ENDE&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;        	# Preprocess image ended
 
 	
+	__DetFeatures = 1					              # Detect Features !!!!!
 	__SpotAligning = 0
-	__DetFeatures = 1
-
-
-	print 	&quot;after cycle: __SpotAligning=&quot;, __SpotAligning, &quot; ; __DetFeatures=&quot;,__DetFeatures  
 
 	if icprm_conf_ind == 1:
 		img_id = processor.ProcessImage( image )
@@ -276,7 +269,7 @@ for image in images:
 	valid = CCT.features[&apos;Valid&apos;]         # --------   Seted: CCT.features[&apos;Valid&apos;]
 	
 	print &quot;Vor Seg Img&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
-	SaveSegmentationImafe(CCT,image)	
+	seg_name = SaveSegmentationImafe(CCT,image)	
 	print &quot;After Seg Img&quot;, time.time() - tStart
 	
 	
