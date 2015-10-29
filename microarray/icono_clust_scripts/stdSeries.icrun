@@ -1,14 +1,13 @@
-<?xml version='1.0' encoding='ISO-8859-1'?>
-<PROCESS owner="Clondiag Chip Technologies" password="e8636ea013e682faf61f56ce1cb1ab5c" script="CCT._Description = {
-&quot;Author&quot; : 	&quot;CLONDIAG chip technologies&quot;,
-&quot;Target&quot; : 	&quot;Processing of Standard Image Series Experiments&quot;,
-&quot;Description&quot; : 	'''
+CCT._Description = {
+"Author" : 	"CLONDIAG chip technologies",
+"Target" : 	"Processing of Standard Image Series Experiments",
+"Description" : 	'''
 		Script processes all images of a given series.
 		The Results are graphed in a special Presentation Component.
 		Model-based Segmentation is optional.
 		Automatic Reference System Recognition is optional.
 		''',
-&quot;Parameter&quot; : 	'''
+"Parameter" : 	'''
 		icprm_spot_color:		DARK or BRIGHT
 		icprm_mode:		0 for fixed segmentation according to layout
 					1 for Model-based Segmentation
@@ -24,19 +23,19 @@
 		icprm_batch:		0 for processing active image
 					1 for processing image series
 		''',
-&quot;Version&quot; : 	2.4,
-&quot;Created&quot; :	&quot;21.08.2007&quot;,
+"Version" : 	2.4,
+"Created" :	"21.08.2007",
 }
 
-__ICPRM__ = { &quot;icprm_spot_color&quot;:	&quot;BRIGHT&quot;,	
-		&quot;icprm_mode&quot;: 		1,
-		&quot;icprm_ref_mode&quot;:	0,
-		&quot;icprm_spot_model&quot;:	( 0.5, 0.0, 0.0, 0.1, 0.1, 0.9, 1.0 ),
-		&quot;icprm_hist_spot&quot;:	( 0.3, 0.9 ),
-		&quot;icprm_hist_back&quot;:	( 0.1, 0.7 ),
-		&quot;icprm_sub_back&quot;:	0,
-		&quot;icprm_batch&quot;:		1,
-		&quot;icprm_name&quot;:		&quot;''&quot;,	}
+__ICPRM__ = { "icprm_spot_color":	"BRIGHT",	
+		"icprm_mode": 		1,
+		"icprm_ref_mode":	0,
+		"icprm_spot_model":	( 0.5, 0.0, 0.0, 0.1, 0.1, 0.9, 1.0 ),
+		"icprm_hist_spot":	( 0.3, 0.9 ),
+		"icprm_hist_back":	( 0.1, 0.7 ),
+		"icprm_sub_back":	0,
+		"icprm_batch":		1,
+		"icprm_name":		"''",	}
 
 BRIGHT = 1
 DARK = 2
@@ -71,14 +70,14 @@ image = images[-1]
 CCT.CommitImages( image )
 ref_id = processor.ProcessRefImage( image ) 
 CCT.RunAlignment( img = image, mode = 0, 
-			param = { &quot;Transformation&quot;: ( ref_mode, ( 0.05, ), 
-							{	&quot;image_ref&quot;: ref_id,
-								&quot;mode_law&quot;: 5 | 256 | 512, 
-								&quot;trans_opt&quot;: ( 0.1, 0.05, 0.2, 0.2, 0.2, 1.0, 1.0 ), 
-								&quot;param_opt&quot;: ( 25.0, 0.8, 5000.0, 5000.0, 0.0, 0.0005, 0.0, 0.01 ),
-								&quot;trans_sub_opt&quot;: ( 0.0, 0.0, 0.0, 5.0, 5.0 ),
-								&quot;param_sub_opt&quot;: ( 500.0, 4.0, 20.0, 40.0, 10.0, 0.0005 ),
-								&quot;weight_probes&quot;: 0.0
+			param = { "Transformation": ( ref_mode, ( 0.05, ), 
+							{	"image_ref": ref_id,
+								"mode_law": 5 | 256 | 512, 
+								"trans_opt": ( 0.1, 0.05, 0.2, 0.2, 0.2, 1.0, 1.0 ), 
+								"param_opt": ( 25.0, 0.8, 5000.0, 5000.0, 0.0, 0.0005, 0.0, 0.01 ),
+								"trans_sub_opt": ( 0.0, 0.0, 0.0, 5.0, 5.0 ),
+								"param_sub_opt": ( 500.0, 4.0, 20.0, 40.0, 10.0, 0.0005 ),
+								"weight_probes": 0.0
 							}
 						    )
 				 } ) 
@@ -89,8 +88,8 @@ try:
 	#now determine the spots
 	img_id = processor.ProcessImage( image ) 
 	CCT.RunAlignment( img = img_id, trans = 0, mode = mode,
-			    param = { &quot;Thresholding&quot;: ( 2, icprm_spot_model ),
-					&quot;Segmentation&quot;: ( 0, ( 200.0, 0.3, 2500.0, 2500.0, 2.0, 0.00001, 0.0, 0.001 ) ) }  )
+			    param = { "Thresholding": ( 2, icprm_spot_model ),
+					"Segmentation": ( 0, ( 200.0, 0.3, 2500.0, 2500.0, 2.0, 0.00001, 0.0, 0.001 ) ) }  )
 finally:
 	if mode == 2 and icprm_spot_color == BRIGHT:	#model-based
 		icono.InvertImage( image, image )
@@ -100,39 +99,39 @@ share_update = 0.0
 for image in images:
 	CCT.CommitImages( image )
 
-	feat_back = CCT.DetermineFeatures( image, ( &quot;Mean&quot;, ),
+	feat_back = CCT.DetermineFeatures( image, ( "Mean", ),
 						spot_mode = REGION_BACK | REGION_HIST,
 						spot_param = ( 3, 0, 0, 1, 0 ),
 						hist_param = icprm_hist_back )
-	feat_spot = CCT.DetermineFeatures( image, ( &quot;Mean&quot;, &quot;Sigma&quot;, &quot;CoG_x&quot;, &quot;CoG_y&quot; ),
+	feat_spot = CCT.DetermineFeatures( image, ( "Mean", "Sigma", "CoG_x", "CoG_y" ),
 						spot_mode = REGION_SPOT | REGION_HIST,
 						hist_param = icprm_hist_spot )
-	feat_spot[&quot;Background&quot;] = feat_back[&quot;Mean&quot;]
+	feat_spot["Background"] = feat_back["Mean"]
 
-	len_feat = len( feat_spot[&quot;Mean&quot;] )
+	len_feat = len( feat_spot["Mean"] )
 	
 	if icprm_sub_back == 1:
 		# additive model
 		if icprm_spot_color == BRIGHT: 
-			feat_spot[&quot;Signal&quot;] = [ feat_spot[&quot;Mean&quot;][i] - feat_back[&quot;Mean&quot;][i] for i in xrange( len_feat ) ]
+			feat_spot["Signal"] = [ feat_spot["Mean"][i] - feat_back["Mean"][i] for i in xrange( len_feat ) ]
 		else:	
-			feat_spot[&quot;Signal&quot;] = [ feat_back[&quot;Mean&quot;][i] - feat_spot[&quot;Mean&quot;][i] for i in xrange( len_feat ) ]
+			feat_spot["Signal"] = [ feat_back["Mean"][i] - feat_spot["Mean"][i] for i in xrange( len_feat ) ]
 	elif icprm_sub_back == 2:
 		# multiplicative model
 		signal = []
 		if icprm_spot_color == BRIGHT: 
 			for i in xrange( len_feat ):
 				try:
-					signal.append( ( feat_spot[&quot;Mean&quot;][i] - feat_back[&quot;Mean&quot;][i] ) / ( 1.0 - feat_back[&quot;Mean&quot;][i] ) )
+					signal.append( ( feat_spot["Mean"][i] - feat_back["Mean"][i] ) / ( 1.0 - feat_back["Mean"][i] ) )
 				except:
 					signal.append( 0.0 )
 		else:	
 			for i in xrange( len_feat ):
 				try:
-					signal.append( 1.0 - feat_spot[&quot;Mean&quot;][i] / feat_back[&quot;Mean&quot;][i] )
+					signal.append( 1.0 - feat_spot["Mean"][i] / feat_back["Mean"][i] )
 				except:
 					signal.append( 0.0 )
-		feat_spot[&quot;Signal&quot;] = signal
+		feat_spot["Signal"] = signal
 	
 	CCT.features = feat_spot
 
@@ -142,22 +141,21 @@ for image in images:
 	if CCT.vb_control:
 		CCT.vb_control.UpdateProgress( share_update )
 
-CCT.rawResultType = &quot;ic [MeanBG]&quot;
+CCT.rawResultType = "ic [MeanBG]"
 
 # set featureMap for Partisan
 import ODBC2Magasin
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Mean&quot;, &quot;value&quot;, &quot;norm&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Signal&quot;, &quot;value2&quot;, &quot;norm&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Background&quot;, &quot;local_backgrd&quot;, &quot;norm&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Sigma&quot;, &quot;sigma_1&quot;, &quot;norm&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Valid&quot;, &quot;flags&quot;, &quot;norm&quot; )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Mean", "value", "norm" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Signal", "value2", "norm" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Background", "local_backgrd", "norm" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Sigma", "sigma_1", "norm" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Valid", "flags", "norm" )
 
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Spot ID&quot;, &quot;Spot_ID&quot;, &quot;raw&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Valid&quot;, &quot;Flags&quot;, &quot;raw&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Cog_x&quot;, &quot;COG_x&quot;, &quot;raw&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Cog_y&quot;, &quot;COG_y&quot;, &quot;raw&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Mean&quot;, &quot;Mean&quot;, &quot;raw&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Background&quot;, &quot;Background&quot;, &quot;raw&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Signal&quot;, &quot;Signal&quot;, &quot;raw&quot; )
-ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, &quot;Sigma&quot;, &quot;Sigma&quot;, &quot;raw&quot; )
-" />
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Spot ID", "Spot_ID", "raw" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Valid", "Flags", "raw" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Cog_x", "COG_x", "raw" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Cog_y", "COG_y", "raw" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Mean", "Mean", "raw" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Background", "Background", "raw" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Signal", "Signal", "raw" )
+ODBC2Magasin.AppendTypedFeatureMap( CCT.rawResultType, "Sigma", "Sigma", "raw" )

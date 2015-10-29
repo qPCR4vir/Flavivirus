@@ -1,11 +1,10 @@
-<?xml version='1.0' encoding='ISO-8859-1'?>
-<PROCESS owner="Clondiag Chip Technologies" password="e8636ea013e682faf61f56ce1cb1ab5c" script="CCT._Description = {
-&quot;Author&quot; : 	&quot;Clondiag Chip Technologies&quot;,
-&quot;Target&quot; : 	&quot;Processing of Standard Array Experiments&quot;,
-&quot;Description&quot; : 	'''
+CCT._Description = {
+"Author" : 	"Clondiag Chip Technologies",
+"Target" : 	"Processing of Standard Array Experiments",
+"Description" : 	'''
 		Script processes the active image.
 		Histogram and Model-based Spot Segmentation are optional.''',
-&quot;Parameter&quot; :	'''
+"Parameter" :	'''
 		icprm_color:	DARK or BRIGHT
 		icprm_mode:	0 for defined shape
 				1 for automatic shape
@@ -14,12 +13,12 @@
 		icprm_featlist:	Features to determine
 				Selection out of (Mean, Background, Sigma, Median, Area, CoG_x, CoG_y)
 		''',
-&quot;Version&quot; :	2.0
+"Version" :	2.0
 }
 
-__ICPRM__ = { &quot;icprm_color&quot;:		&quot;BRIGHT&quot;,
-		&quot;icprm_mode&quot;: 		&quot;0&quot;,
-		&quot;icprm_featlist&quot;:		'( &quot;Mean&quot;, &quot;Background&quot;, &quot;Sigma&quot; )'	}
+__ICPRM__ = { "icprm_color":		"BRIGHT",
+		"icprm_mode": 		"0",
+		"icprm_featlist":		'( "Mean", "Background", "Sigma" )'	}
 
 
 __SpotAligning = 1
@@ -61,9 +60,9 @@ if ( mode == 2 and color == BRIGHT ) or ( mode == 4 and color == DARK ):
 	#model-based or MSER-based
 	icono.InvertImage( idi, idi )
 try:
-	CCT.RunAlignment( mode = mode, param = { &quot;Transformation&quot;: ( 0, ( linethres, ) ),
-                                  	&quot;Thresholding&quot;: ( thres, prm_thres ),
-                                  	&quot;Segmentation&quot;: ( seg, prm_seg ) } )
+	CCT.RunAlignment( mode = mode, param = { "Transformation": ( 0, ( linethres, ) ),
+                                  	"Thresholding": ( thres, prm_thres ),
+                                  	"Segmentation": ( seg, prm_seg ) } )
 
 finally:
 	if ( mode == 2 and color == BRIGHT ) or ( mode == 4 and color == DARK ):		
@@ -78,4 +77,3 @@ idi = CCT.GetCurrentImage()
 CCT.DetermineFeatures( idi, icprm_featlist )
 __DetFeatures = 0
 
-" />
