@@ -32,7 +32,6 @@
 &quot;Version&quot; : 	&quot;3.1r2&quot;,
 &quot;ScriptVersion&quot; : &quot;2014-06-11&quot;
 }
-
 print &quot;---  Script adapted  by Ariel Vina Rodriguez !!!!!!!!!!   &quot;
 print &quot;Signal changed from 1 to 0 ?? 1: = 1 - Mean / Local Background &quot;
 print &quot; or to 0:  = Local Background - Mean &quot;
@@ -60,6 +59,15 @@ __ICPRM__ = { &quot;icprm_spot_color&quot;:	DARK,
 		&quot;icprm_save_segimage&quot;:	False,
 		}
 
+
+images = (CCT.GetCurrentImage(),)#CCT.GetSortedImageIDs()
+#curr_image = CCT.GetCurrentImage()
+#import OnlyMeanSignal
+
+
+
+
+
 __SpotAligning = 1
 
 
@@ -70,8 +78,7 @@ tStart = time.time()
 
 import win32gui
 
-images = CCT.GetSortedImageIDs()
-curr_image = CCT.GetCurrentImage()
+
 
 
 if icprm_mode:		 # ??? just elimine 1 (AUTO)
@@ -361,13 +368,15 @@ for curr_image in images:
 
 	# create a dictionary with key value pair: substancename, value
 	# presentation only creates the mean of the values per substance
-	subst_list = CCT.features[&quot;Substance&quot;]
+	subst_list1 = CCT.features[&quot;Substance&quot;] 
+	subst_list = [ s for s  in subst_list1  ]
 	SigMeans = {}
 	for subst in subst_list:
 		SigMeans[ subst ] = []
 	for idx in valid_indx:
 		SigMeans[ subst_list[idx] ].append( CCT.features[&quot;Signal&quot;][idx] ) 
 
+	#subst_list.sort()
 	print &quot;---- SigMeans created&quot;
 	sig = [ len(SigMeans[ subst ]) and 
                sum(SigMeans[ subst ])/len(SigMeans[ subst ]) for subst  in subst_list  ]
