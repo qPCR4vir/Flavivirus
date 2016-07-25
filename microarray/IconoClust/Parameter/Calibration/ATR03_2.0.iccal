@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<CALIBRATION>
+  <SELFTEST>
+    <CAMERA 
+      bit_depth="8" 
+      dim_x="740" 
+      dim_y="740"
+    />
+    <TERMS 
+      notes="" 
+      time="Thu Jan 28 15:11:13 2010" 
+    />
+    <TRANSFORMATION 
+      mirror="1" 
+      rotation="0.0" 
+      scale_x="225900.000000" 
+      scale_y="225900.000000" 
+      shift_x="370.0" 
+      shift_y="370.0" 
+      shiftref_x="-0.5" 
+      shiftref_y="-0.5"
+    />
+  </SELFTEST>
+</CALIBRATION>

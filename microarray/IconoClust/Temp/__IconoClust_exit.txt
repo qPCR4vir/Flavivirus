@@ -1,0 +1,2 @@
+0
+IconoClust exited with no errors

@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{695db746-2c26-434e-9676-61fa7cb1a508}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile />
+    <SearchPath>..\..\;..\..\Lib\;..\..\Lib\site-packages\Icono\</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+    <InterpreterVersion />
+    <PtvsTargetsFile>$(VSToolsPath)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <VSToolsPath Condition=" '$(VSToolsPath)' == '' ">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CreateLayout.icrun.py" />
+    <Compile Include="module1.py" />
+    <Compile Include="module2.py" />
+    <Compile Include="OnlyMeanSignal_AllPictures.py" />
+    <Compile Include="presentProcess.icrun.py" />
+    <Compile Include="scatterProcess.icrun.py" />
+    <Compile Include="stdAT.py" />
+    <Compile Include="stdProcess.py" />
+    <Compile Include="stdSeries.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ATProcess.pyc" />
+    <Content Include="TextFile1.txt" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

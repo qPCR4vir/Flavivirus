@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<CALIBRATION>
+   <SELFTEST>
+      <CAMERA bit_depth="8" dim_x="540" dim_y="540"/>
+      <TERMS notes="" time="Mon Mar 27 09:26:56 2006"/>
+      <TRANSFORMATION mirror="1" rotation="0.0" scale_x="165491.694605" scale_y="165491.694605" shift_x="270.0" shift_y="270.0" shiftref_x="-0.5" shiftref_y="-0.5"/>
+   </SELFTEST>
+</CALIBRATION>

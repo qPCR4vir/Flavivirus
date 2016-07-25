@@ -1,0 +1,315 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<PROCESS owner="Clondiag Chip Technologies" password="e8636ea013e682faf61f56ce1cb1ab5c" script="CCT._Description = {
+&quot;Author&quot; : 	&quot;CLONDIAG&quot;,
+&quot;Target&quot; : 	&quot;Processing of Standard ArrayTube and ArrayStrip Experiments&quot;,
+&quot;Description&quot; : 	&apos;&apos;&apos;
+		Script processes active image in experiment.
+		The Results are graphed in a special Presentation Component.
+		Model-based Segmentation is optional.
+		Automatic Reference System Recognition is optional.
+		Results can be normalized by named substance value.&apos;&apos;&apos;,
+&quot;Parameter&quot; : 	&apos;&apos;&apos;
+		icprm_platform:		ARRAY_TUBE or ARRAY_STRIP
+		icprm_mode:		FIXED for fixed segmentation according to layout
+					MODEL for Model-based Segmentation
+		icprm_trans:		Model parameter for spot transformation
+		icprm_ref_mode:		MANUAL for manual setting of Reference Points
+					AUTO for Automatic Reference System Detection
+					AUTO_CHROME for Automatic Chrome Reference System Detection
+		icprm_mask_mode:	Mode for masking chip area: 
+		icprm_ref_trans:		Model parameter for Reference System transformation: GREY_RNG, ROLL_CIRCLE, CLUST_CAND
+		icprm_ref_check:		Check grid recognition if set
+		icprm_conf_ind:		Determine Confidence Index (CI) if set
+					A spot is set invalid if CI &lt; 0.75 and Signal &gt; 0.1
+		icprm_hist_spot:		Histogram parameter for spot pixel selection
+		icprm_hist_back:		Histogram parameter for background pixel selection
+		icprm_prm_back:		Parameter to define spot background
+		icprm_reject:		Ask for manually rejecting spots if set
+		icprm_norm:		Normalize signals with signals of normalizing substance if set
+		icprm_subst_norm:	Name of normalizing substance
+					If empty the name will be entered in a dialog
+		icprm_save:		Save file with medians per substance if set
+		icprm_seg_save:		Save segmentation image if set
+		&apos;&apos;&apos;,
+&quot;Version&quot; : 	&quot;3.5r1pre100729&quot;,
+&quot;Created&quot; :	&quot;10.07.2006&quot;,
+}
+
+__ICPRM__ = { &quot;icprm_platform&quot;:		&quot;ARRAY_TUBE&quot;,
+		&quot;icprm_mode&quot;: 		&quot;MODEL&quot;,
+		&quot;icprm_trans&quot;:		&quot;( 0.7, 0.0, 0.0, 0.2, 0.2, 1.0, 1.0 )&quot;,
+		&quot;icprm_ref_mode&quot;:	&quot;AUTO_CHROME&quot;,
+		&quot;icprm_mask_mode&quot;:	&quot;ROLL_CIRCLE&quot;,
+		&quot;icprm_ref_trans&quot;:		&quot;( 0.05, 0.03, 0.15, 0.14, 0.14, 1.0, 1.0 )&quot;,
+		&quot;icprm_ref_check&quot;:	&quot;1&quot;,
+		&quot;icprm_conf_ind&quot;:		&quot;1&quot;,
+		&quot;icprm_hist_spot&quot;:	&quot;()&quot;,
+		&quot;icprm_hist_back&quot;:	&quot;()&quot;,
+		&quot;icprm_prm_back&quot;:	&quot;()&quot;,
+		&quot;icprm_reject&quot;:		&quot;0&quot;,
+		&quot;icprm_norm&quot;:		&quot;0&quot;,
+		&quot;icprm_subst_norm&quot;:	&quot;&apos;&apos;&quot;,
+		&quot;icprm_save&quot;:		&quot;0&quot;,
+		&quot;icprm_seg_save&quot;:	&quot;0&quot;, }
+
+import ATProcess
+
+BRIGHT = 1
+DARK = 2
+
+ARRAY_TUBE = 1
+ARRAY_STRIP = 2
+
+MANUAL = 0
+AUTO = 1
+AUTO_CHROME = 2
+
+FIXED = 0
+MODEL = 2
+
+GREY_RNG = ATProcess.GREY_RNG
+ROLL_CIRCLE = ATProcess.ROLL_CIRCLE
+CLUST_CAND = ATProcess.CLUST_CAND
+
+mode = icprm_mode
+ref_mode = icprm_ref_mode
+
+image = CCT.GetCurrentImage()
+image_name = CCT.GetImageName( image )
+
+img_supp = ImageSupport.ImageSupport()
+size = img_supp.GetPictureDimensions( image )
+img_supp.SetWindow( ( 5, 5, size[0] - 6, size[1] - 6 ), image )
+
+aligner = ATProcess.AlignLayout( CCT, DARK, icprm_platform )
+if icprm_ref_check:
+	# use standard checker
+	checker = None
+else:
+	# use no checker
+	checker = 0
+
+if icprm_ref_mode == AUTO_CHROME:
+	param_opt = ( 1.0, 0.5, 5000.0, 5000.0, 0, 0.0005, 0, 0.005 )
+else:
+	param_opt = ( 25.0, 0.8, 5000.0, 5000.0, 0, 0.0005, 0, 0.01 )
+
+mask_mode = icprm_mask_mode
+if mask_mode == ATProcess.ROLL_CIRCLE:
+	max_smear = 0.8
+	
+	if icprm_ref_mode == AUTO_CHROME:
+		# set very strict constraint - it is not dangerous to not detect chip area
+		ratio_back = 0.04
+	else:
+		if icprm_platform == ARRAY_TUBE:
+			ratio_back = 0.01
+		else:
+			# have sharp chrome mask
+			ratio_back = 0.03
+else:
+	max_smear = 0.5
+	ratio_back = 0.3
+
+try:
+	aligner.AlignGrid( image, ref_mode, trans_opt = icprm_ref_trans, 
+			     param_opt = param_opt, checker = checker, show_rng = 0, 
+			     mask_mode = mask_mode, mask_id = -1, 
+			     ratio_back = ratio_back, max_smear = max_smear )
+	img_proc = aligner.AlignSpots( image, mode, prm_thres = icprm_trans, 
+					   preproc = { &quot;filter_dim&quot;: 5, &quot;rank&quot;: 13, &quot;shading&quot;: 1 } )
+except:
+	# save segmentation image
+	if CCT.imgSegSave:
+		if CCT.imgSegSave == 1:
+			add_valid = 0
+		else:
+			add_valid = 1
+		try:
+			CCT.SaveSegImage( opac = 0.7, add_valid = add_valid )
+		except:
+			# no seg-image to save
+			pass
+
+	raise
+
+if icprm_conf_ind == 1:
+	import Confidence
+
+	checker = Confidence.ConfidenceChecker( img_proc, image, colour = DARK )
+	checker.SetEnviron( CCT )
+	ci_results = checker.Check( set = { &apos;bg&apos;: { &apos;on&apos;: 0 } }, 
+					signal = 1,
+					align = 0 )
+
+	ci_feat = {}
+	for ci_key, ci_list in ci_results.iteritems():
+		ci_feat[ci_key] = [ ci_list[i] for i in xrange( len( ci_list ) ) ]
+	
+	# clear mask image to get overlay for selected spot pixels
+	icono.ClearImage( ImageSupport.IMAGE_MSK, image )
+else:
+	ci_feat = {}
+
+if not icprm_hist_back:
+	# use pixel on ROI
+	feat_back = CCT.DetermineFeatures( image, ( &quot;Background&quot;, ) )
+	mean_back = feat_back[&quot;Background&quot;]
+else:
+	feat_back = CCT.DetermineFeatures( image, ( &quot;Mean&quot;, ), REGION_BACK | REGION_HIST,
+						icprm_prm_back, hist_param = icprm_hist_back )
+	mean_back = feat_back[&quot;Mean&quot;]
+if not icprm_hist_spot:
+	mode_spot = REGION_SPOT
+else:
+	mode_spot = REGION_SPOT | REGION_HIST
+feat_spot = CCT.DetermineFeatures( image, ( &quot;Mean&quot;, &quot;Sigma&quot;, &quot;CoG_x&quot;, &quot;CoG_y&quot;, &quot;Pixel&quot; ),
+					mode_spot, hist_param = icprm_hist_spot )
+feat_spot[&quot;Background&quot;] = mean_back
+CCT.features = feat_spot
+# multiplicative model
+signal = []
+for i in xrange( len( CCT.features[&quot;Mean&quot;] ) ):
+	if CCT.features[&quot;Background&quot;][i]:
+		signal.append( 1 - CCT.features[&quot;Mean&quot;][i] / CCT.features[&quot;Background&quot;][i] )
+	else:
+		signal.append( 0.0 )
+CCT.features[&quot;Signal&quot;] = signal
+
+CCT.features.update( ci_feat )
+
+if icprm_seg_save:
+	name_seg = os.path.splitext( image_name )[0] + &quot;_seg.png&quot;
+	CCT.SaveSegImage( name_seg, opac = 0.7, add_valid = 1 )
+
+if CCT.vb_control and icprm_reject:
+	CCT.vb_control.ShowResults( 1 )
+	answer = ParamGlobals.MessageBox( 
+			&quot;You can set invalid Spots now.&quot; + chr( 13 ) + \
+			&quot;Press &apos;Ok&apos; if you are done.&quot;, &quot;Spot Validity&quot; )
+	CCT.features[&quot;Valid&quot;] = CCT.vb_control.GetValidity()
+
+valid_indx = []
+for ( i, val ) in enumerate( CCT.features[&quot;Valid&quot;] ):
+	if val == 0:
+		valid_indx.append( i ) 
+
+CCT.featSubst = []
+for subst in CCT.features[&quot;Substance&quot;]:
+	try:
+		pos = CCT.featSubst.index( subst )
+	except:
+		CCT.featSubst.append( subst )
+CCT.featSubst.sort()
+
+if icprm_norm:
+	normSubst = icprm_subst_norm
+	if not normSubst:
+		if CCT.vb_control:
+			# create dialog and ask for normalizing substance
+			from win32com.client import Dispatch
+			util = Dispatch( &quot;IconoUtil.Util&quot; )
+			normSubst = util.ListSelectEx( &quot;Normalizing Substance&quot;, &quot;Select name of normalizing substance&quot;, &quot;Select&quot;, CCT.featSubst[:], &quot;norm_subst&quot; )
+			normSubst = normSubst.strip()
+	if normSubst:
+		# normalize features
+		feat_norm = ( &quot;Signal&quot;, )
+		normFeat = {}
+		for feat in feat_norm:
+			normFeat[feat] = 0.0
+		norm_count = 0
+		for i in xrange( len( CCT.features[&quot;Substance&quot;] ) ):
+			if CCT.features[&quot;Valid&quot;][i]:
+				continue
+			subst = CCT.features[&quot;Substance&quot;][i]
+			if subst != normSubst:
+				continue
+			norm_count += 1
+			for feat in feat_norm:
+				normFeat[feat] += CCT.features[feat][i]
+		if not norm_count:
+			raise ValueError( &quot;Cannot normalize - no valid spot for substance&quot; )
+		for feat in feat_norm:
+			if normFeat[feat]:
+				normFeat[feat] /= norm_count
+				CCT.features[feat] = [ val / normFeat[feat] for val in CCT.features[feat] ]
+
+if not CCT.sources.has_key( &quot;subst_match&quot; ):
+	# have to create file with all the substances without any relations
+	# name it after the a_probe_on_array file 
+	name_match = os.path.basename( CCT.sources[&quot;a_probe_on_array&quot;] )
+	name_match = os.path.splitext( name_match )[0] + &quot;.txt&quot;
+	name_match = os.path.join( ParamGlobals.GetIconoPath(), &quot;Parameter&quot;, &quot;Layout&quot;, &quot;Substance&quot;, name_match ) 
+	cont_match = &quot;Match\tSubstance\n&quot;
+	subst_in = []
+	for subst in CCT.features[&quot;Substance&quot;]:
+		if not subst in subst_in:
+			cont_match += subst + &apos;\t&apos; + subst + &apos;\n&apos;
+			subst_in.append( subst )
+	f = open( name_match, &quot;w&quot; )
+	f.write( cont_match )
+	f.close()
+	import Excel2XMLSubstance
+	conv = Excel2XMLSubstance.xl2XML()
+	conv.ImportText( name_match )
+	name_match = conv.Create()
+	CCT.SetParameterSingle( [ ( &quot;subst_match&quot;, name_match ), ] )
+
+# create a dictionarie with key value pair: substancename, value
+# presentation only creates the mean of the values per substance
+substMedian = {}
+subst_list = CCT.features[&quot;Substance&quot;]
+for subst in CCT.featSubst:
+	substMedian[subst] = []
+for ( i, subst ) in enumerate( subst_list ):
+	if CCT.features[&quot;Valid&quot;][i] == 0:
+		substMedian[subst].append( CCT.features[&quot;Signal&quot;][i] )
+# calculate median for each substance
+for subst in substMedian.keys():
+	if len( substMedian[subst] ):
+		substMedian[subst] = Misc.MedianList( substMedian[subst] )
+	else:
+		# just a dummy
+		substMedian[subst] = 0.0
+
+if icprm_save:
+	# save median of signals for each substance
+	try:
+		file_save = ParamGlobals.OpenNames( forSave = 1, 
+							 title = &quot;Save Results (Median( Substance ))&quot; )[0]
+		f = open( file_save, &quot;w&quot; )
+		f.write( &quot;Substance\tMedian(Signal)\n&quot; )
+		substs = substMedian.keys()
+		substs.sort()
+		for subst in substs:
+			val = substMedian[subst]
+			# format signal
+			prec = CCT.featPrecision[&quot;spot&quot;].get( &quot;Signal&quot;, 3 )
+			f.write( str( &quot;%s\t%.*f\n&quot; % ( subst, prec, val ) ) )
+		f.close()
+	except:
+		# camcelled file selection
+		pass
+
+# set parameter for Partisan results
+feat_map = { &quot;norm&quot;: { &quot;SPOT_ID&quot;: &quot;Spot ID&quot;,
+			 &quot;VALUE&quot;: &quot;Mean&quot;,
+			 &quot;VALUE2&quot;: &quot;Signal&quot;,
+			 &quot;LOCAL_BACKGRD&quot;: &quot;Background&quot;,
+			 &quot;SIGMA_1&quot;: &quot;Sigma&quot;,
+			 &quot;FLAGS&quot;: &quot;Valid&quot;,
+			 &quot;QUALITY&quot;: &quot;Confidence&quot;, }, }
+CCT.ParameterDB( &quot;iconoclust&quot;, feat_map, [] )
+
+if CCT.vb_control:
+	validFeat = { &quot;Signal&quot;: 	[ substMedian[subst_list[i]] for i in valid_indx ],
+			&quot;Valid&quot;:		[ 0.0 for i in valid_indx ],
+			&quot;Substance&quot;:	[ subst_list[i] for i in valid_indx ] }
+
+	import PresentEnvironAT
+	CCT.PresentAT = PresentEnvironAT.PresentEnviron()
+	CCT.PresentAT.SetSignalFeature( &quot;Signal&quot; )
+	CCT.PresentAT.SetEnviron( CCT, [ validFeat, ] )
+	CCT.PresentAT.SetMode( nr_img = 0, show_img = PresentEnvironAT.ENDPOINT )
+	CCT.vb_control.SetPresentation( &quot;PresentAT&quot; )
+" />

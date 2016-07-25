@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<CALIBRATION>
+   <SELFTEST>
+      <TERMS time="Fri Sep 05 11:05:48 2003"/>
+      <TRANSFORMATION mirror="1" rotation="0.0" scale_x="220000.0" scale_y="220000.0" shift_x="381.0" shift_y="287.0" shiftref_x="-0.5" shiftref_y="-0.5"/>
+   </SELFTEST>
+</CALIBRATION>
