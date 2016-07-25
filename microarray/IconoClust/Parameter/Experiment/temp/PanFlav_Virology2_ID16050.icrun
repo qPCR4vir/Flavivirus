@@ -70,8 +70,8 @@ tStart = time.time()
 
 import win32gui
 
-images = CCT.GetSortedImageIDs()
-curr_image = CCT.GetCurrentImage()
+images = (CCT.GetCurrentImage(),)#CCT.GetSortedImageIDs()
+#curr_image = CCT.GetCurrentImage()
 
 
 if icprm_mode:		 # ??? just elimine 1 (AUTO)
@@ -359,39 +359,26 @@ for curr_image in images:
 		name_match = conv.Create()
 		CCT.SetParameterSingle( [ ( &quot;subst_match&quot;, name_match ), ] )
 
-	SigMeans = {}
-	for idx in valid_indx:
-		SigMeans[ CCT.features[&quot;Substance&quot;][idx] ] = []
-	for idx in valid_indx:
-		SigMeans[ CCT.features[&quot;Substance&quot;][idx] ].append( CCT.features[&quot;Signal&quot;][idx] ) 
-
 	# create a dictionary with key value pair: substancename, value
 	# presentation only creates the mean of the values per substance
-	substMean = {}
-	subst_list = CCT.features[&quot;Substance&quot;]
+	subst_list1 = CCT.features[&quot;Substance&quot;] 
+	subst_list = [ s for s  in subst_list1  ]
+	SigMeans = {}
+	for subst in subst_list:
+		SigMeans[ subst ] = []
+	for idx in valid_indx:
+		SigMeans[ subst_list[idx] ].append( CCT.features[&quot;Signal&quot;][idx] ) 
 
+	#subst_list.sort()
+	print &quot;---- SigMeans created&quot;
+	sig = [ len(SigMeans[ subst ]) and 
+               sum(SigMeans[ subst ])/len(SigMeans[ subst ]) for subst  in subst_list  ]
+	print &quot;---- SigMeans created 2&quot;
 
-	for subst in CCT.featSubst:
-		mean_for_subst = []
-		for i in xrange( len( subst_list ) ):
-			if valid[i] != 0:
-				continue
-			if subst_list[i] == subst:
-				mean_for_subst.append( CCT.features[&quot;Signal&quot;][i] )
-	
-		# here we can also deal with outliers
-		mean = 0.0
-		for val in mean_for_subst:
-			mean += val
-		if len( mean_for_subst ):
-			mean /= len( mean_for_subst )
-		substMean[subst] = mean
-	
-	# signal is inverted since chart control inverts again   :    NOOOO  ??!!
-	#CCT.validFeat = { 	&quot;Signal&quot;: 	[ 1.0 - substMean[subst_list[i]] for i in valid_indx ],
-	CCT.validFeat = { 	&quot;Signal&quot;: 	[ substMean[subst_list[i]] for i in valid_indx ],
-				&quot;Valid&quot;:		[ 0.0 for i in valid_indx ],
-				&quot;Substance&quot;:	[ subst_list[i] for i in valid_indx ] }
+	CCT.validFeat = { 	&quot;Signal&quot;: 	sig,
+				&quot;Valid&quot;:		[ 0.0 for s  in subst_list  ],
+				&quot;Substance&quot;:	[ s for s  in subst_list  ] }
+	print &quot;--- valid feat calculed&quot;
 	
 	if CCT.vb_control:
 		import PresentEnvironAT
@@ -405,14 +392,6 @@ for curr_image in images:
 		CCT.rawResultType = &quot;ic [1MeanBG]&quot;
 	elif verified_icprm_signal == 0:
 		CCT.rawResultType = &quot;ic [MeanBG]&quot;
-	
-	# set featureMap for Partisan
-	import ODBC2Magasin
-	ODBC2Magasin.AppendFeatureMap( &quot;Mean&quot;, &quot;value&quot; )
-	ODBC2Magasin.AppendFeatureMap( &quot;Signal&quot;, &quot;value2&quot; )
-	ODBC2Magasin.AppendFeatureMap( &quot;Background&quot;, &quot;local_backgrd&quot; )
-	ODBC2Magasin.AppendFeatureMap( &quot;Confidence&quot;, &quot;quality&quot; )
-	ODBC2Magasin.AppendFeatureMap( &quot;Valid&quot;, &quot;flags&quot; )
 	
 	# make available parameter
 	CCT.paramProcessing = {}
