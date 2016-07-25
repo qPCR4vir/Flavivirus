@@ -7,7 +7,12 @@
 		or processes only the selected image and  the Results are graphed in a special Presentation Component.
 		Model-based Segmentation is optional.
 		Automatic Reference System Recognition is optional.
-		Results are normalized by the biggest signal, if bigger than 20% of the Biotin-Marke_2,5µM probe mean signal.&apos;&apos;&apos;,
+		Results are normalized by the biggest signal, if bigger than 20% of the Biotin-Marke_2,5µM probe mean signal.
+                                     See: https://github.com/qPCR4vir/Flavivirus/tree/master/microarray/icono_clust_scripts
+                                               https://github.com/qPCR4vir/Flavivirus/tree/master/microarray/orange
+                                               http://orange.biolab.si/
+                                               http://orange.biolab.si/orange2/
+                                         &apos;&apos;&apos;,
 &quot;Parameter&quot; : 	&apos;&apos;&apos;
 		icprm_only_current_image:  True/False : what images to process. If only the current, no result will be export, but will be shown.
 		icprm_export_orange            True/False  : Export all Exp.signal data to be use in Orange. http://orange.biolab.si/
@@ -32,11 +37,11 @@
 					AUTO               for Automatic Reference System Detection  : NOT IMPLEMENTED, default to AUTO_CHROME
 					AUTO_CHROME for Automatic Chrome Reference System Detection
 		&apos;&apos;&apos;,
-&quot;Version&quot; : 	&quot;3.2r4&quot;,
-&quot;ScriptVersion&quot; : &quot;2014-06-21&quot;
+&quot;Version&quot; : 	&quot;3.2r1&quot;,
+&quot;ScriptVersion&quot; : &quot;2016-07-21&quot;
 }
 
-print &quot;---  Script adapted  by Ariel Vina Rodriguez !!!!!!!!!!   &quot; 
+print &quot;---  Atention: Script adapted (by Ariel Vina Rodriguez, at INNT-FLI) !   &quot; 
 
 FIXED = 0		# Segmentation mode 
 MODE = 1
@@ -78,8 +83,8 @@ __ICPRM__ = { &quot;icprm_spot_color&quot;:	&quot;DARK&quot;,
 print &quot;Signal changed from 1 to 0 ?? 1: = 1 - Mean / Local Background &quot;
 print &quot; or to 0:  = Local Background - Mean &quot;
 
-import time
-tStart = time.time()
+# import time
+# tStart = time.time()
 
 table_created = False
 export_orange = icprm_export_orange  	#True. Why icprm_export_orange is undefined at the end of the script?  
@@ -174,7 +179,7 @@ for image in images:
 	CCT.CommitImages( image )
 	size = img_supp.GetPictureDimensions( image )
 	img_supp.SetWindow( ( 5, 5, size[0] - 6, size[1] - 6 ), image )
-	print &quot;---  Reference curr_image:&quot;,image,&quot; picture commited with size: &quot;, size, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	print &quot;---  Image:&quot;,image,&quot; size: &quot;, size   #, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	if ref_mode:		# not MANUAL ?!
 		if icprm_spot_color == BRIGHT:
@@ -207,7 +212,7 @@ for image in images:
 			       &quot;weight_probes&quot;: 0.0
 			    } 
 		ref_auto = 1
-		print &quot;---  Processed RefImage&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+		#print &quot;---  Processed RefImage&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	else:
 		processor = ATProcess.Processor( mode, 0 )
 		ref_param = {}
@@ -218,11 +223,11 @@ for image in images:
 	CCT.RunAlignment( img = image, mode = 0, 
 		    param = { &quot;Transformation&quot;: ( ref_auto, ( 0.05, ), ref_param ) } )
 
-	print &quot;---  Aligned RefImage&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	# print &quot;---  Aligned RefImage&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
 	if invert:		# model-based : our case!
 		icono.InvertImage( image, image )
-		print &quot;---  Inverted RefImage&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+		#print &quot;---  Inverted RefImage&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	parameter = { &quot;Thresholding&quot;: ( 4, ( 0.7, 0.0, 0.0, 0.2, 0.2, 1.0, 1.0 ) ),
 			&quot;Segmentation&quot;: ( 0, ( 200.0, 0.3, 2500.0, 2500.0, 1.0, 0.00001, 0.0, 0.001 ) ) }
@@ -241,10 +246,10 @@ for image in images:
 	if CCT.vb_control:
 		CCT.vb_control.SetModeShowROI( &quot;ROI_FILLED&quot; )
 		CCT.vb_control.SetOpacityShowROI( 20 )
-		print &quot;CCT.vb_control true&quot;
-		print str(CCT.vb_control) #.toString()
+		#print &quot;CCT.vb_control true&quot;
+		#print str(CCT.vb_control) #.toString()
 	
-	print &quot;SpotAligning:: ENDE&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;        	# Preprocess image ended
+	#print &quot;SpotAligning:: ENDE&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;        	# Preprocess image ended
 
 	
 	__DetFeatures = 1					              # Detect Features !!!!!
@@ -256,15 +261,15 @@ for image in images:
 		checker.SetEnviron( CCT )
 		ci_results = checker.Check( parameter, set = { &apos;bg&apos;: { &apos;on&apos;: 0 } }, signal = verified_icprm_signal )
 	
-	print &quot;After ConfidenceChecker&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot; # ######   cprm_ darf nich clartext in string
+	#print &quot;After ConfidenceChecker&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot; # ######   cprm_ darf nich clartext in string
 	
 	back_hist = CCT.DetermineFeatures( image,  ( &quot;Mean&quot;,  ),
 						    REGION_BACK|REGION_HIST, ( 3.0, -3.0, 0.0, 1.0, 0.0 ),
 						    hist_param = hist_par_back )
-	print &quot; --- back_hist DetermineFeatures Mean&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot; --- back_hist DetermineFeatures Mean&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	CCT.DetermineFeatures( image, ( &quot;Mean&quot;,  ), REGION_HIST, hist_param =  hist_par_spot )
-	print &quot; ---   DetermineFeatures Mean&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot; ---   DetermineFeatures Mean&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	len_list = len(CCT.features[&quot;Mean&quot;])
 	
@@ -286,10 +291,10 @@ for image in images:
 		if verified_icprm_signal == Bkg_Mean:
 			CCT.features[&quot;Signal&quot;] = [( CCT.features[&quot;Mean&quot;][i] - back_hist[&quot;Mean&quot;][i]) for i in xrange( len_list ) ]
 	
-	print &quot; ---   Signals calculated&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot; ---   Signals calculated&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	CCT.features[&quot;Background&quot;] = [back_hist[&quot;Mean&quot;][i] for i in xrange( len_list ) ]
-	print &quot; ---   Backgrounds calculated&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot; ---   Backgrounds calculated&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	if icprm_conf_ind == One_MeanDivBkg:
 		for ci_key, ci_list in ci_results.iteritems():
@@ -297,9 +302,9 @@ for image in images:
 	
 	invalid = CCT.features[&apos;Valid&apos;]         # --------   Seted: CCT.features[&apos;Valid&apos;]
 	
-	print &quot;Vor Seg Img&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;Vor Seg Img&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	seg_name = SaveSegmentationImafe(CCT,image)	
-	print &quot;After Seg Img&quot;, time.time() - tStart
+	#print &quot;After Seg Img&quot;, time.time() - tStart
 	
 	
 	
@@ -316,11 +321,11 @@ for image in images:
 	
 	if not CCT.features.has_key( &quot;Substance&quot; ):
 		raise KeyError, &quot;You have to include Spot Descriptions into your Experiment&quot;
-	print &quot;---- After Substance...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;---- After Substance...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
 	CCT.featSubst = list(set(CCT.features[&quot;Substance&quot;]))
 	CCT.featSubst.sort()
-	print &quot;---- After Substance 2...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;---- After Substance 2...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	
 	normSubst = &quot;Biotin-Marke_2,5µM&quot;   # = icprm_subst_norm  &quot;&quot;
@@ -369,7 +374,7 @@ for image in images:
 				#CCT.features[feat] = [ val / normFeat[feat] for val in CCT.features[feat] ]
 				CCT.features[feat] = [ val / nFeatMax[feat] for val in CCT.features[feat] ]
 	
-		print &quot; ---- Normalized ...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+		#print &quot; ---- Normalized ...&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
 	# create a dictionary with key value pair: substancename, value
 	# presentation only                          creates the mean of the values per substance
@@ -382,15 +387,15 @@ for image in images:
 		SigMeans[ CCT.features[&quot;Substance&quot;][idx] ].append( CCT.features[&quot;Signal&quot;][idx] ) 
 
 	#subst_list.sort()
-	print &quot;---- SigMeans created&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;---- SigMeans created&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	sig = [ len(SigMeans[ subst ]) and 
                sum(SigMeans[ subst ])/len(SigMeans[ subst ]) for subst  in subst_list  ]
-	print &quot;---- SigMeans created 2&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;---- SigMeans created 2&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
 	CCT.validFeat = { &quot;Signal&quot;:    sig,
 			    &quot;Valid&quot; :    [ 0.0 ] * len(subst_list ),
 			    &quot;Substance&quot;: subst_list }
-	print &quot;--- valid feat calculed&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;--- valid feat calculed&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 	
 	if CCT.vb_control:					# #### Graphic ????
 		import PresentEnvironAT
@@ -410,7 +415,7 @@ for image in images:
 	if seg_name:
 		CCT.paramProcessing[&quot;segPath&quot;] = seg_name
 
-	print &quot;--- Before export&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;--- Before export&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
 	if ExportSig :						 # Export signals in a file
 		imagePath=CCT.GetImageName(image)
@@ -424,7 +429,7 @@ for image in images:
 			table.write( sep )
 			table.write(sep.join(   [str(signal) for signal in sig]   ))
 			table.write( &quot;\n&quot; )
-	print &quot;Ende cycle&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
+	#print &quot;Ende cycle&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 
 for table, s ,title,path in tables:
 	table.close()
@@ -432,6 +437,7 @@ for table, s ,title,path in tables:
 
 print &quot;Ende script&quot;, &quot; Time: &quot;,time.time() - tStart, &quot; s&quot;
 print &quot;Num of images to processed = &quot;, len(images)
+print &quot;---  Atention: Script adapted (by Ariel Vina Rodriguez, at INNT-FLI) !   &quot; 
 __DetFeatures = 0
 
 
