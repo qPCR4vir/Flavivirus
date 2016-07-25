@@ -359,7 +359,7 @@ for curr_image in images:
 		name_match = conv.Create()
 		CCT.SetParameterSingle( [ ( &quot;subst_match&quot;, name_match ), ] )
 
-
+	SigMeans = {}
 	for idx in valid_indx:
 		SigMeans[ CCT.features[&quot;Substance&quot;][idx] ] = []
 	for idx in valid_indx:
@@ -370,7 +370,6 @@ for curr_image in images:
 	substMean = {}
 	subst_list = CCT.features[&quot;Substance&quot;]
 
-	SigMeans = {}
 
 	for subst in CCT.featSubst:
 		mean_for_subst = []
