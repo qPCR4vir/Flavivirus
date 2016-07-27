@@ -18,4 +18,4 @@ Experimenting with other distances(loosed?)
 
         \Python27\Lib\site-packages\Orange\OrangeWidgets\Prototypes\OWCSVFileImport.py
         \Python27\Lib\site-packages\Orange\OrangeWidgets\Prototypes\icons\FileCSV.png
-       \Python27\Lib\site-packages\Orange\data\io.py
+        \Python27\Lib\site-packages\Orange\data\io.py
